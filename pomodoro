@@ -2,6 +2,7 @@
 
 WORK_MINUTES=${1:-25}
 BREAK_MINUTES=${2:-5}
+WORK_CATEGORY=${3:-""}
 WORK_SECONDS=$((WORK_MINUTES * 60))
 BREAK_SECONDS=$((BREAK_MINUTES * 60))
 
@@ -67,6 +68,10 @@ EOF
 
 # Run Pomodoro
 clear
+if ! test -f /home/$(whoami)/pomodoro_stats.csv; then
+    echo "date;category;work_minutes;break_minutes" > /home/$(whoami)/pomodoro_stats.csv
+fi
+
 pink=$'\e[95m'
 reset=$'\e[0m'
 echo -e "${pink}"
@@ -79,3 +84,5 @@ echo "☕ Time for a break: $BREAK_MINUTES minutes..."
 countdown "$BREAK_SECONDS" "Break"
 
 echo "✅ Pomodoro session complete!"
+
+echo "$(date +'%Y-%m-%d %H:%M:%S');$WORK_CATEGORY;$WORK_MINUTES;$BREAK_MINUTES" >> /home/$(whoami)/pomodoro_stats.csv
