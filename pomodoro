@@ -1,0 +1,81 @@
+#!/bin/bash
+
+WORK_MINUTES=${1:-25}
+BREAK_MINUTES=${2:-5}
+WORK_SECONDS=$((WORK_MINUTES * 60))
+BREAK_SECONDS=$((BREAK_MINUTES * 60))
+
+countdown() {
+    local total=$1
+    local message=$2
+    local width=30
+    local seconds=$total
+    local spinner_chars=(":    " "::   " ":::  " " ::::" "  :::" "   ::" "    :" "     ")
+    local spinner_index=0
+
+    while [[ $seconds -gt 0 || $seconds -eq 0 ]]; do
+        local mins=$((seconds / 60))
+        local secs=$((seconds % 60))
+
+        local percent=$(( (total - seconds) * 100 / total ))
+        local filled=$(( percent * width / 100 ))
+        local empty=$(( width - filled ))
+
+        # ANSI colors
+        local green=$'\e[32m'
+        local red=$'\e[31m'
+        local reset=$'\e[0m'
+        local orange=$'\e[33m'
+        # Build colored progress bar
+        local filled_bar=""
+        for ((i = 0; i < filled; i++)); do filled_bar+="|"; done
+        local empty_bar=""
+        for ((i = 0; i < empty; i++)); do empty_bar+="|"; done
+
+        local bar="${green}${filled_bar}${red}${empty_bar}${reset}"
+        local spinner="${spinner_chars[spinner_index]}"
+        spinner_index=$(( (spinner_index + 1) % ${#spinner_chars[@]} ))
+        # Print the progress bar
+        printf "\r[%s] ${orange}%s${reset} %02d:%02d remaining" "$bar" "$spinner" "$mins" "$secs" 
+
+        sleep 1
+        ((seconds--))
+    done
+    # End of countdown function
+    echo -e "\n$message complete!\a"
+
+    # If running in WSL, try playing a sound using PowerShell
+    if grep -qi microsoft /proc/version; then
+        if [[ "$2" == "Work" ]]; then
+            powershell.exe -c '(New-Object Media.SoundPlayer "C:\\Windows\\Media\\Alarm09.wav").PlaySync()' &
+        else
+            powershell.exe -c '(New-Object Media.SoundPlayer "C:\\Windows\\Media\\Alarm10.wav").PlaySync()' &
+        fi
+    fi
+}
+
+ascii_pomodoro() {  
+  cat <<'EOF'
+██████╗  ██████╗ ███╗   ███╗ ██████╗ ██████╗  ██████╗ ██████╗  ██████╗ 
+██╔══██╗██╔═══██╗████╗ ████║██╔═══██╗██╔══██╗██╔═══██╗██╔══██╗██╔═══██╗
+██████╔╝██║   ██║██╔████╔██║██║   ██║██║  ██║██║   ██║██████╔╝██║   ██║
+██╔═══╝ ██║   ██║██║╚██╔╝██║██║   ██║██║  ██║██║   ██║██╔══██╗██║   ██║
+██║     ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██████╔╝╚██████╔╝██║  ██║╚██████╔╝
+╚═╝      ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ 
+EOF
+}
+
+# Run Pomodoro
+clear
+pink=$'\e[95m'
+reset=$'\e[0m'
+echo -e "${pink}"
+ascii_pomodoro
+echo -e "${reset}"
+echo "💻 📖 👓 $WORK_MINUTES minutes of focus..."
+countdown "$WORK_SECONDS" "Work"
+
+echo "☕ Time for a break: $BREAK_MINUTES minutes..."
+countdown "$BREAK_SECONDS" "Break"
+
+echo "✅ Pomodoro session complete!"
