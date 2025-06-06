@@ -10,7 +10,15 @@ To run the timer, run:
 ./pomodoro
 ```
 
+##### Parameters
+Parameters are to be inputed in specific order and are as following:
+|**Type**|**Description**|**Example**|**Default**|
+|-|-|-|-|
+`int`|Determines how long is the work time|`20`|`25`
+`int`|Determines how long is the break time|`3`|`5`
+
 **Optional:** move the `pomodoro` script to `~/.local/bin/` for easier use, run `movetobin.sh` (assuming you already have `local/bin` folder):
+
 ```shell
 ./movetobin.sh
 ```
