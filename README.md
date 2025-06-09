@@ -24,6 +24,7 @@ Parameters are to be inputed in specific order and are as following:
 |**Command**|**Alias**|**Description**|
 |-|-|-|
 `--help`|`-h`|Prints help messages
+`--version`|`-v`|Prints version information
 `--day`|`-d`|Displays daily stats
 
 **Optional:** move the `pomodoro` script to `~/.local/bin/` for easier use, run `movetobin.sh` (assuming you already have `local/bin` folder):
