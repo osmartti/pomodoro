@@ -19,6 +19,13 @@ Parameters are to be inputed in specific order and are as following:
 `int`|Determines how long is the break time|`3`|`5`
 `string`|Category that will be saved in the csv file|`"Working on my script"`|``
 
+
+##### Commands
+|**Command**|**Alias**|**Description**|
+|-|-|-|
+`--help`|`-h`|Prints help messages
+`--day`|`-d`|Displays daily stats
+
 **Optional:** move the `pomodoro` script to `~/.local/bin/` for easier use, run `movetobin.sh` (assuming you already have `local/bin` folder):
 
 ```shell

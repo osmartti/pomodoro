@@ -55,7 +55,81 @@ countdown() {
     fi
 }
 
-ascii_pomodoro() {  
+# Main method
+main() {
+    case $1 in
+
+    --help|-h)
+        help
+        ;;
+    --version|-v)
+        echo "Pomodoro Timer - a simple pomodoro timer for Unix v1.0"
+        exit 0
+        ;;
+    --day|-d)
+        day
+        ;;
+    *)
+        pomodoro "$WORK_MINUTES" "$BREAK_MINUTES" "$WORK_CATEGORY"
+        ;;
+    esac
+}
+
+# Commands
+
+# Main pomodoro function
+pomodoro() {
+    clear
+    if ! test -f /home/$(whoami)/pomodoro_stats.csv; then
+        echo "date;category;work_minutes;break_minutes" > /home/$(whoami)/pomodoro_stats.csv
+    fi
+
+    pink=$'\e[95m'
+    reset=$'\e[0m'
+    echo -e "${pink}"
+    ascii_pomodoro
+    echo -e "${reset}"
+    echo "💻 📖 👓 $WORK_MINUTES minutes of focus..."
+    countdown "$WORK_SECONDS" "Work"
+
+    echo "☕ Time for a break: $BREAK_MINUTES minutes..."
+    countdown "$BREAK_SECONDS" "Break"
+
+    echo "✅ Pomodoro session complete!"
+
+    echo "$(date +'%Y-%m-%d %H:%M:%S');$WORK_CATEGORY;$WORK_MINUTES;$BREAK_MINUTES" >> /home/$(whoami)/pomodoro_stats.csv
+}
+
+# Display help messages
+help() {
+    echo "Usage: pomodoro [WORK_MINUTES] [BREAK_MINUTES] [WORK_CATEGORY]"
+    echo "Default: 25 minutes work, 5 minutes break, no category"
+    echo "Example: pomodoro 30 10 'Reading'"
+    exit 0
+}
+
+# Display today's pomodoro stats
+day() {
+    clear
+    pink=$'\e[95m'
+    reset=$'\e[0m'
+    echo -e "${pink}"
+    ascii_day
+    echo -e "${reset}"
+    echo "==================="
+    echo "Date;Category;Work Minutes;Break Minutes"
+    if test -f /home/$(whoami)/pomodoro_stats.csv; then
+        cat /home/$(whoami)/pomodoro_stats.csv | grep "$(date +'%Y-%m-%d')"
+        if [[ $? -ne 0 ]]; then
+            echo "No pomodoro stats found for today."
+        fi
+    else
+        echo "No pomodoro stats found for today."
+    fi
+    exit 0
+}
+
+ascii_pomodoro() {
   cat <<'EOF'
 ██████╗  ██████╗ ███╗   ███╗ ██████╗ ██████╗  ██████╗ ██████╗  ██████╗ 
 ██╔══██╗██╔═══██╗████╗ ████║██╔═══██╗██╔══██╗██╔═══██╗██╔══██╗██╔═══██╗
@@ -66,23 +140,15 @@ ascii_pomodoro() {
 EOF
 }
 
-# Run Pomodoro
-clear
-if ! test -f /home/$(whoami)/pomodoro_stats.csv; then
-    echo "date;category;work_minutes;break_minutes" > /home/$(whoami)/pomodoro_stats.csv
-fi
+ascii_day() {
+  cat <<'EOF'
+██████╗  █████╗ ██╗   ██╗
+██╔══██╗██╔══██╗ ██║ ██║
+██║  ██║███████║  ████╔╝
+██║  ██║██╔══██║   ██║
+██████╔╝██║  ██║   ██║
+╚═════╝ ╚═╝  ╚═╝   ╚═╝
+EOF
+}
 
-pink=$'\e[95m'
-reset=$'\e[0m'
-echo -e "${pink}"
-ascii_pomodoro
-echo -e "${reset}"
-echo "💻 📖 👓 $WORK_MINUTES minutes of focus..."
-countdown "$WORK_SECONDS" "Work"
-
-echo "☕ Time for a break: $BREAK_MINUTES minutes..."
-countdown "$BREAK_SECONDS" "Break"
-
-echo "✅ Pomodoro session complete!"
-
-echo "$(date +'%Y-%m-%d %H:%M:%S');$WORK_CATEGORY;$WORK_MINUTES;$BREAK_MINUTES" >> /home/$(whoami)/pomodoro_stats.csv
+main "$@"
