@@ -3,8 +3,10 @@
 WORK_MINUTES=${1:-25}
 BREAK_MINUTES=${2:-5}
 WORK_CATEGORY=${3:-"Working"}
+AMOUNT_OF_CYCLES=${4:-1}
 WORK_SECONDS=$((WORK_MINUTES * 60))
 BREAK_SECONDS=$((BREAK_MINUTES * 60))
+cycles_remaining=$AMOUNT_OF_CYCLES
 
 countdown() {
     local total=$1
@@ -69,6 +71,12 @@ main() {
     --day|-d)
         day
         ;;
+    --week|-w)
+        week
+        ;;
+    --stats|-s)
+        stats
+        ;;
     *)
         pomodoro "$WORK_MINUTES" "$BREAK_MINUTES" "$WORK_CATEGORY"
         ;;
@@ -83,13 +91,12 @@ pomodoro() {
     if ! test -f /home/$(whoami)/pomodoro_stats.csv; then
         echo "date;category;work_minutes;break_minutes" > /home/$(whoami)/pomodoro_stats.csv
     fi
-
-    pink=$'\e[95m'
-    reset=$'\e[0m'
-    echo -e "${pink}"
     ascii_pomodoro
-    echo -e "${reset}"
-    echo "💻 📖 👓 $WORK_MINUTES minutes of $WORK_CATEGORY..."
+    if [[ $cycles_remaining -gt 1 ]]; then
+        echo "💻 📖 👓 $WORK_MINUTES minutes of $WORK_CATEGORY for $cycles_remaining cycles..."
+    else
+        echo "💻 📖 👓 $WORK_MINUTES minutes of $WORK_CATEGORY..."
+    fi
     countdown "$WORK_SECONDS" "Work"
 
     echo "☕ Time for a break: $BREAK_MINUTES minutes..."
@@ -98,6 +105,13 @@ pomodoro() {
     echo "✅ Pomodoro session complete!"
 
     echo "$(date +'%Y-%m-%d %H:%M');$WORK_CATEGORY;$WORK_MINUTES;$BREAK_MINUTES" >> /home/$(whoami)/pomodoro_stats.csv
+    cycles_remaining=$((cycles_remaining - 1))
+    if [[ cycles_remaining -gt 0 ]]; then
+        pomodoro "$WORK_MINUTES" "$BREAK_MINUTES" "$WORK_CATEGORY"
+    else
+        echo "🎉 All cycles completed! Well done!"
+    fi
+    exit 0
 }
 
 # Display version information
@@ -108,29 +122,23 @@ version() {
 
 # Display help messages
 help() {
-    echo "Usage: pomodoro [WORK_MINUTES] [BREAK_MINUTES] [WORK_CATEGORY]"
-    echo "Default: 25 minutes work, 5 minutes break, category 'Working'"
+    echo "Usage: pomodoro [WORK_MINUTES] [BREAK_MINUTES] [WORK_CATEGORY] [AMOUNT_OF_CYCLES]"
+    echo "Default: 25 minutes work, 5 minutes break, category 'Working', cycles 1"
     echo "Example:"
-    echo "pomodoro 30 10 'Reading'"
+    echo "pomodoro 30 10 'Reading' 2"
     echo "Commands:"
-    echo "  --help, -h       Show help"
-    echo "  --version, -v    Show version"
+    echo "  --help, -h      Show help"
+    echo "  --version, -v   Show version"
     echo "  --day, -d       Show today's stats"
+    echo "  --week, -w      Show this week's stats"
+    echo "  --stats, -s     Show all stats"
     exit 0
 }
 
 # Display today's pomodoro stats
 day() {
     clear
-    pink=$'\e[95m'
-    reset=$'\e[0m'
-    echo -e "${pink}"
     ascii_pomodoro
-    echo -e "${reset}"
-    echo "📅 Today's "$(date +'%Y-%m-%d')" Pomodoro Stats ✅"
-    echo "|-------------------------------------------------------------------------|"
-    echo "|Date...................|Category...........................|W.Min.|B.Min.|"
-    echo "|-------------------------------------------------------------------------|"
     stats_file="/home/$(whoami)/pomodoro_stats.csv"
     today=$(date +'%Y-%m-%d')
 
@@ -139,6 +147,10 @@ day() {
         if [[ -z "$stats" ]]; then
             echo "❌ No pomodoro stats found for today."
         else
+            echo "📊 Today's "$today" Pomodoro Stats ✅"
+            echo "|-------------------------------------------------------------------------|"
+            echo "|Date...................|Category...........................|W.Min.|B.Min.|"
+            echo "|-------------------------------------------------------------------------|"
             while IFS=";" read -r date category work break; do
                 printf "|✅ %-19s | %-33s | %4s | %4s |\n" "$date" "$category" "$work" "$break"
             done <<< "$stats"
@@ -149,8 +161,66 @@ day() {
     exit 0
 }
 
+week() {
+    clear
+    ascii_pomodoro
+    stats_file="/home/$(whoami)/pomodoro_stats.csv"
+    today=$(date +'%Y-%m-%d')
+
+    if [[ -f "$stats_file" ]]; then
+        found=false
+        for i in {0..6}; do
+            day=$(date -d "$today - $i days" +'%Y-%m-%d')
+            stats=$(grep "$day" "$stats_file")
+            if [[ -n "$stats" ]]; then
+                if ! $found; then
+                    echo "📅 Pomodoro Stats for $(date -d "$today - 6 days" +'%Y-%m-%d') - $today ✅"
+                    echo "|-------------------------------------------------------------------------|"
+                    echo "|Date...................|Category...........................|W.Min.|B.Min.|"
+                    echo "|-------------------------------------------------------------------------|"
+                fi
+                found=true
+                while IFS=";" read -r date category work break; do
+                    printf "|✅ %-19s | %-33s | %4s | %4s |\n" "$date" "$category" "$work" "$break"
+                done <<< "$stats"
+            fi
+        done
+        if ! $found; then
+            echo "❌ No pomodoro stats found for this week."
+        fi
+    else
+        echo "❌ No pomodoro stats found for this week."
+    fi
+    exit 0
+}
+
+stats() {
+    clear
+    ascii_pomodoro
+    stats_file="/home/$(whoami)/pomodoro_stats.csv"
+
+    if [[ -f "$stats_file" ]]; then
+        echo "📊 All Time Pomodoro Stats ✅"
+        echo "|-------------------------------------------------------------------------|"
+        echo "|Date...................|Category...........................|W.Min.|B.Min.|"
+        echo "|-------------------------------------------------------------------------|"
+        while IFS=";" read -r date category work break; do
+            if [[ "$date" == "date" ]]; then
+                continue
+            fi
+            printf "|✅ %-19s | %-33s | %4s | %4s |\n" "$date" "$category" "$work" "$break"
+        done < "$stats_file"
+    else
+        echo "❌ No pomodoro stats found."
+    fi
+    exit 0
+}
+
 ascii_pomodoro() {
-  cat <<'EOF'
+    pink=$'\e[95m'
+    reset=$'\e[0m'
+    echo -e "${pink}"
+    cat <<'EOF'
 ██████╗  ██████╗ ███╗   ███╗ ██████╗ ██████╗  ██████╗ ██████╗  ██████╗ 
 ██╔══██╗██╔═══██╗████╗ ████║██╔═══██╗██╔══██╗██╔═══██╗██╔══██╗██╔═══██╗
 ██████╔╝██║   ██║██╔████╔██║██║   ██║██║  ██║██║   ██║██████╔╝██║   ██║
@@ -158,6 +228,7 @@ ascii_pomodoro() {
 ██║     ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝██████╔╝╚██████╔╝██║  ██║╚██████╔╝
 ╚═╝      ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ 
 EOF
+    echo -e "${reset}"
 }
 
 main "$@"

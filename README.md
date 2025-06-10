@@ -17,7 +17,8 @@ Parameters are to be inputed in specific order and are as following:
 |-|-|-|-|
 `int`|Determines how long is the work time|`20`|`25`
 `int`|Determines how long is the break time|`3`|`5`
-`string`|Category that will be saved in the csv file|`"Working on my script"`|``
+`string`|Category that will be saved in the csv file|`"Working on my script"`|`Working`
+`int`|Amount of pomodoro cycles|`2`|`1`
 
 
 ##### Commands
@@ -26,6 +27,8 @@ Parameters are to be inputed in specific order and are as following:
 `--help`|`-h`|Prints help messages
 `--version`|`-v`|Prints version information
 `--day`|`-d`|Displays daily stats
+`--week`|`-w`|Displays data from past 7 days
+`--stats`|`s`|Displays all stats
 
 **Optional:** move the `pomodoro` script to `~/.local/bin/` for easier use, run `movetobin.sh` (assuming you already have `local/bin` folder):
 
