@@ -20,6 +20,14 @@ Parameters are to be inputed in specific order and are as following:
 `string`|Category that will be saved in the csv file|`"Working on my script"`|`Working`
 `int`|Amount of pomodoro cycles|`2`|`1`
 
+##### Config file
+`.pomodoro_config` file is created by running `pomodoro` the first time. File contains following configurations:
+|**Type**|**Description**|**Example**|**Default**|
+|-|-|-|-|
+`MINIMALISTIC`|Displays minimalistic ui|`true`|`false`
+`PROGRESS_BAR_STYLE`|Determines what kind of progress bar is shown. Options 1-5 exists|`5`|`1`
+`STATS_PATH`|Path where `pomodoro_stats.csv` file is created and stats are saved|`/home/user/myfolder`|`/home/user`
+
 
 ##### Commands
 |**Command**|**Alias**|**Description**|
