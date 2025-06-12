@@ -1,4 +1,6 @@
 #!/bin/bash
 cp pomodoro ~/.local/bin/pomodoro
-cp .pomodoro_config ~/.local/bin/.pomodoro_config
+if [[ -f .pomodoro_config ]]; then
+    cp .pomodoro_config ~/.local/bin/.pomodoro_config
+fi
 chmod +x ~/.local/bin/pomodoro
