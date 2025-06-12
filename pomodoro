@@ -9,6 +9,7 @@ BREAK_SECONDS=$((BREAK_MINUTES * 60))
 MINIMALISTIC=true
 PROGRESS_BAR_STYLE=1
 STATS_PATH="/home/$(whoami)"
+THEME="default"
 cycles_remaining=$AMOUNT_OF_CYCLES
 
 # Read values from config file if it exists, otherwise use defaults
@@ -16,6 +17,7 @@ if [[ -f ~/.local/bin/.pomodoro_config ]]; then
     MINIMALISTIC=$(grep MINIMALISTIC ~/.local/bin/.pomodoro_config | cut -d '=' -f2 | tr -d '[:space:]')
     PROGRESS_BAR_STYLE=$(grep PROGRESS_BAR_STYLE ~/.local/bin/.pomodoro_config | cut -d '=' -f2 | tr -d '[:space:]')
     STATS_PATH=$(grep STATS_PATH ~/.local/bin/.pomodoro_config | cut -d '=' -f2 | tr -d '[:space:]')
+    THEME=$(grep THEME ~/.local/bin/.pomodoro_config | cut -d '=' -f2 | tr -d '[:space:]')
 fi
 
 countdown() {
@@ -38,7 +40,6 @@ countdown() {
         local green=$'\e[32m'
         local red=$'\e[31m'
         local reset=$'\e[0m'
-        local orange=$'\e[33m'
         # Build colored progress bar
         local filled_bar=""
         local bar_char="█"
@@ -57,7 +58,7 @@ countdown() {
         local spinner="${spinner_chars[spinner_index]}"
         spinner_index=$(( (spinner_index + 1) % ${#spinner_chars[@]} ))
         # Print the progress bar
-        printf "\r[%s] ${orange}%s${reset} %02d:%02d remaining" "$bar" "$spinner" "$mins" "$secs" 
+        printf "\r[%s] ${pomodoro_color_scheme}%s${reset} %02d:%02d remaining" "$bar" "$spinner" "$mins" "$secs" 
 
         sleep 1
         ((seconds--))
@@ -77,6 +78,7 @@ countdown() {
 
 # Main method
 main() {
+    local pomodoro_color_scheme=$(get_color_scheme)
     case $1 in
 
     --help|-h)
@@ -161,6 +163,7 @@ help() {
         Check the config file at ~/.local/bin/.pomodoro_config for more options.
         Config file options:
         MINIMALISTIC=true/false   Enable/disable minimalistic mode
+        THEME=default|miami|sunrise|dracula|mint|night|ocean|seabreeze
         PROGRESS_BAR_STYLE=1-5    Choose progress bar style (1-5)
         STATS_PATH=/path/to/stats  Set the path for stats file
     "
@@ -252,9 +255,8 @@ ascii_pomodoro() {
     if [[ "$MINIMALISTIC" == "true" ]]; then
         return
     fi
-    pink=$'\e[95m'
     reset=$'\e[0m'
-    echo -e "${pink}"
+    echo -e "${pomodoro_color_scheme}"
     cat <<'EOF'
 ██████╗  ██████╗ ███╗   ███╗ ██████╗ ██████╗  ██████╗ ██████╗  ██████╗ 
 ██╔══██╗██╔═══██╗████╗ ████║██╔═══██╗██╔══██╗██╔═══██╗██╔══██╗██╔═══██╗
@@ -264,6 +266,38 @@ ascii_pomodoro() {
 ╚═╝      ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ 
 EOF
     echo -e "${reset}"
+}
+
+get_color_scheme() {
+    case "$THEME" in
+    "default")
+        printf $'\e[37m'  # White
+        ;;
+    "miami")
+        printf $'\e[95m'  # Pink
+        ;;
+    "sunrise")
+        printf $'\e[93m'  # Yellow
+        ;;
+    "dracula")
+        printf $'\e[31m'  # Red
+        ;;
+    "mint")
+        printf $'\e[92m'  # Green
+        ;;
+    "night")
+        printf $'\e[90m'  # Dark Gray
+        ;;
+    "ocean")
+        printf $'\e[94m'  # Blue
+        ;;
+    "seabreeze")
+        printf $'\e[96m'  # Cyan
+        ;;
+    *)
+        printf $'\e[37m'  # Default to white if theme is unknown
+        ;;
+    esac
 }
 
 main "$@"

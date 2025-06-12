@@ -25,6 +25,7 @@ Parameters are to be inputed in specific order and are as following:
 |**Type**|**Description**|**Example**|**Default**|
 |-|-|-|-|
 `MINIMALISTIC`|Displays minimalistic ui|`true`|`false`
+`THEME`|Theme of the UI|`default`,`miami`,`sunrise`,`dracula`,`mint`,`night`,`ocean`,`seabreeze`|`default`
 `PROGRESS_BAR_STYLE`|Determines what kind of progress bar is shown. Options 1-5 exists|`5`|`1`
 `STATS_PATH`|Path where `pomodoro_stats.csv` file is created and stats are saved|`/home/user/myfolder`|`/home/user`
 
