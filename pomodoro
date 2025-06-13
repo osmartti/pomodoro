@@ -39,7 +39,6 @@ countdown() {
         # ANSI colors
         local green=$'\e[32m'
         local red=$'\e[31m'
-        local reset=$'\e[0m'
         # Build colored progress bar
         local filled_bar=""
         local bar_char="█"
@@ -79,6 +78,7 @@ countdown() {
 # Main method
 main() {
     local pomodoro_color_scheme=$(get_color_scheme)
+    local reset=$'\e[0m'
     case $1 in
 
     --help|-h)
@@ -183,12 +183,11 @@ day() {
             echo "❌ No pomodoro stats found for today."
         else
             echo "📊 Today's "$today" Pomodoro Stats ✅"
-            echo "|-------------------------------------------------------------------------|"
-            echo "|Date...................|Category...........................|W.Min.|B.Min.|"
-            echo "|-------------------------------------------------------------------------|"
+            get_table_header
             while IFS=";" read -r date category work break; do
-                printf "|✅ %-19s | %-33s | %4s | %4s |\n" "$date" "$category" "$work" "$break"
+                printf "|✅${reset} %-19s ${pomodoro_color_scheme}|${reset} %-33s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|\n" "$date" "$category" "$work" "$break"
             done <<< "$stats"
+            echo "${pomodoro_color_scheme}|-------------------------------------------------------------------------|"
         fi
     else
         echo "❌ No pomodoro stats found for today."
@@ -210,16 +209,15 @@ week() {
             if [[ -n "$stats" ]]; then
                 if ! $found; then
                     echo "📅 Pomodoro Stats for $(date -d "$today - 6 days" +'%Y-%m-%d') - $today ✅"
-                    echo "|-------------------------------------------------------------------------|"
-                    echo "|Date...................|Category...........................|W.Min.|B.Min.|"
-                    echo "|-------------------------------------------------------------------------|"
+                    get_table_header
                 fi
                 found=true
                 while IFS=";" read -r date category work break; do
-                    printf "|✅ %-19s | %-33s | %4s | %4s |\n" "$date" "$category" "$work" "$break"
+                    printf "|✅${reset} %-19s ${pomodoro_color_scheme}|${reset} %-33s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|\n" "$date" "$category" "$work" "$break"
                 done <<< "$stats"
             fi
         done
+        echo "${pomodoro_color_scheme}|-------------------------------------------------------------------------|"
         if ! $found; then
             echo "❌ No pomodoro stats found for this week."
         fi
@@ -255,7 +253,6 @@ ascii_pomodoro() {
     if [[ "$MINIMALISTIC" == "true" ]]; then
         return
     fi
-    reset=$'\e[0m'
     echo -e "${pomodoro_color_scheme}"
     cat <<'EOF'
 ██████╗  ██████╗ ███╗   ███╗ ██████╗ ██████╗  ██████╗ ██████╗  ██████╗ 
@@ -266,6 +263,12 @@ ascii_pomodoro() {
 ╚═╝      ╚═════╝ ╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ 
 EOF
     echo -e "${reset}"
+}
+
+get_table_header() {
+    echo "${pomodoro_color_scheme}|-------------------------------------------------------------------------|"
+    echo "|${reset}Date${pomodoro_color_scheme}...................|${reset}Category${pomodoro_color_scheme}...........................|${reset}W.Min${pomodoro_color_scheme}.|${reset}B.Min${pomodoro_color_scheme}.|"
+    echo "|-------------------------------------------------------------------------|"
 }
 
 get_color_scheme() {
