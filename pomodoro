@@ -244,15 +244,14 @@ stats() {
 
     if [[ -f "$stats_file" ]]; then
         echo "📊 All Time Pomodoro Stats ✅"
-        echo "|-------------------------------------------------------------------------|"
-        echo "|Date...................|Category...........................|W.Min.|B.Min.|"
-        echo "|-------------------------------------------------------------------------|"
+        get_table_header
         while IFS=";" read -r date category work break; do
             if [[ "$date" == "date" ]]; then
                 continue
             fi
-            printf "|✅ %-19s | %-33s | %4s | %4s |\n" "$date" "$category" "$work" "$break"
+            printf "|✅${reset} %-19s ${pomodoro_color_scheme}|${reset} %-33s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|\n" "$date" "$category" "$work" "$break"
         done < "$stats_file"
+        get_table_footer
     else
         echo "❌ No pomodoro stats found."
     fi
