@@ -27,8 +27,29 @@ Parameters are to be inputed in specific order and are as following:
 `MINIMALISTIC`|Displays minimalistic ui|`true`|`false`
 `THEME`|Theme of the UI|`default`,`miami`,`sunrise`,`dracula`,`mint`,`night`,`ocean`,`seabreeze`|`default`
 `PROGRESS_BAR_STYLE`|Determines what kind of progress bar is shown. Options 1-5 exists|`5`|`1`
-`STATS_PATH`|Path where `pomodoro_stats.csv` file is created and stats are saved|`/home/user/myfolder`|`/home/user`
+`STATS_PATH`|Path where `pomodoro_stats.csv` file is created and stats are saved. Additionally `pomodoro_schedule.csv` can be saved here as well|`/home/user/myfolder`|`/home/user`
 `DEFAULT_CATEGORY`|Category which is defeaulted if no category parameter is given|`Project X`|`Working`
+
+##### Schedule
+You can create `pomodoro_schedule.csv` in the folder where your `.pomodoro_config` file's `STATS_PATH` parameter is pointing. In this file you can add fixed schedules for each day. Following is example of `pomodoro_schedule.csv`:
+```csv
+date;category;description;start_time;end_time
+Monday;work;Work time;8:00;16:00
+Monday;sport;Gym;10:30;11:30
+Monday;hobby;Painting;16:30;17:30
+Monday;study;Studying a new language;18:30;20:00
+Monday;leisure;Playing Games;21:00;22:00
+Tuesday;work;Work time;9:00;17:00
+...
+```
+Then you can display your daily fixed schedule with command:
+```shell
+pomodoro -sc
+```
+or:
+```shell
+pomodoro --schedule
+```
 
 
 ##### Commands
@@ -38,7 +59,8 @@ Parameters are to be inputed in specific order and are as following:
 `--version`|`-v`|Prints version information
 `--day`|`-d`|Displays daily stats
 `--week`|`-w`|Displays data from past 7 days
-`--stats`|`s`|Displays all stats
+`--stats`|`-s`|Displays all stats
+`--schedule`|`-sc`|Displays fixed schedule for today
 
 **Optional:** move the `pomodoro` script to `~/.local/bin/` for easier use, run `movetobin.sh` (assuming you already have `local/bin` folder):
 
