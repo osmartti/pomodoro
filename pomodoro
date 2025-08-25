@@ -99,6 +99,9 @@ main() {
     --stats|-s)
         stats
         ;;
+    --schedule|-sc)
+        schedule
+        ;;
     *)
         pomodoro "$WORK_MINUTES" "$BREAK_MINUTES" "$WORK_CATEGORY"
         ;;
@@ -164,14 +167,28 @@ help() {
         %-4s--version, -v   Show version
         %-4s--day, -d       Show today's stats
         %-4s--week, -w      Show this week's stats
-        %-4s--stats, -s     Show all stats\n
+        %-4s--stats, -s     Show all stats
+        %-4s--schedule, -sc     Shows today's schedule. For more information please see the section schedule.\n
         Check the config file at ~/.local/bin/.pomodoro_config for more options.\n
         Config file options:
         %-4sMINIMALISTIC=true/false   Enable/disable minimalistic mode
         %-4sTHEME=default|miami|sunrise|dracula|mint|night|ocean|seabreeze
         %-4sPROGRESS_BAR_STYLE=1-5    Choose progress bar style (1-5)
         %-4sSTATS_PATH=/path/to/stats  Set the path for stats file
-        %-4sDEFAULT_CATEGORY=Category  Set the default category for pomodoros
+        %-4sDEFAULT_CATEGORY=Category  Set the default category for pomodoros\n
+        Schedule:
+        %-4sYou can create pomodoro_schedule.csv in the folder where your .pomodoro_config file's STATS_PATH parameter is pointing.
+        %-4sIn this file you can add fixed schedules for each day. Following is example of pomodoro_schedule.csv:
+        %-8sdate;category;description;start_time;end_time
+        %-8sMonday;work;Work time;8:00;16:00
+        %-8sMonday;sport;Gym;10:30;11:30
+        %-8sMonday;hobby;Painting;16:30;17:30
+        %-8sMonday;study;Studying a new language;18:30;20:00
+        %-8sMonday;leisure;Playing Games;21:00;22:00
+        %-8sTuesday;work;Work time;9:00;17:00
+        %-8s...
+        %-4sThen you can display your fixed schedule in cool fashion with commands pomodoro -sc or pomodoro --schedule\n
+        Enjoy your productivity boost! 🚀
     "
     exit 0
 }
@@ -258,6 +275,44 @@ stats() {
     exit 0
 }
 
+schedule() {
+    clear
+    ascii_pomodoro
+    schedule_file="$STATS_PATH/pomodoro_schedule.csv"
+    date=$(date +%A)
+    echo "📅 ${date}'s Schedule ✅"
+    get_schedule_header
+    if [[ -f "$schedule_file" ]]; then
+        schedule_response=$(grep "$date" "$schedule_file")
+        if [[ -z "$schedule_response" ]]; then
+            echo "❌ No schedule found for today."
+        else
+            while IFS=";" read -r _ category description start_time end_time; do
+                description=$(echo "$description" | tr -d '\r')
+                start_time=$(echo "$start_time" | tr -d '\r')
+                end_time=$(echo "$end_time" | tr -d '\r')
+                if [[ $category == "work" ]]; then
+                    description="💻 $description"
+                elif [[ $category == "sport" ]]; then
+                    description="🏐 $description"
+                elif [[ $category == "leisure" ]]; then
+                    description="🎮 $description"
+                elif [[ $category == "study" ]]; then
+                    description="📕 $description"
+                elif [[ $category == "hobby" ]]; then
+                    description="🎨 $description"
+                else
+                    description="❓ $description"
+                fi
+                printf "| ${reset}%-32s ${pomodoro_color_scheme}|${reset}%11s${pomodoro_color_scheme}|${reset}%10s${pomodoro_color_scheme}|\n" "$description" "$start_time" "$end_time"
+            done <<< "$schedule_response"
+        fi
+        get_schedule_footer
+    else
+        echo "❌ No pomodoro schedule found at $schedule_file."
+    fi
+}
+
 ascii_pomodoro() {
     if [[ "$MINIMALISTIC" == "true" ]]; then
         return
@@ -278,6 +333,16 @@ get_table_header() {
     echo "${pomodoro_color_scheme}|-------------------------------------------------------------------------|"
     echo "|${reset}Date${pomodoro_color_scheme}...................|${reset}Category${pomodoro_color_scheme}...........................|${reset}W.Min${pomodoro_color_scheme}.|${reset}B.Min${pomodoro_color_scheme}.|"
     echo "|-------------------------------------------------------------------------|"
+}
+
+get_schedule_header() {
+    echo "${pomodoro_color_scheme}|-------------------------------------------------------|"
+    echo "|${reset}Description${pomodoro_color_scheme}.....................|${reset}Start Time${pomodoro_color_scheme}.|${reset}End Time${pomodoro_color_scheme}..|"
+    echo "|-------------------------------------------------------|"
+}
+
+get_schedule_footer() {
+    echo "${pomodoro_color_scheme}|-------------------------------------------------------|"
 }
 
 get_table_footer() {
