@@ -1,7 +1,12 @@
 #!/bin/bash
 
-WORK_MINUTES=${1:-25}
-BREAK_MINUTES=${2:-5}
+if [[ -f ~/.local/bin/.pomodoro_config ]]; then
+    DEFAULT_WORK_MINUTES=$(grep DEFAULT_WORK_MINUTES ~/.local/bin/.pomodoro_config | cut -d '=' -f2 | tr -d '[:space:]')
+    DEFAULT_BREAK_MINUTES=$(grep DEFAULT_BREAK_MINUTES ~/.local/bin/.pomodoro_config | cut -d '=' -f2 | tr -d '[:space:]')
+fi
+
+WORK_MINUTES=${1:-${DEFAULT_WORK_MINUTES:-25}}
+BREAK_MINUTES=${2:-${DEFAULT_BREAK_MINUTES:-5}}
 AMOUNT_OF_CYCLES=${4:-1}
 WORK_SECONDS=$((WORK_MINUTES * 60))
 BREAK_SECONDS=$((BREAK_MINUTES * 60))
@@ -175,7 +180,9 @@ help() {
         %-4sTHEME=default|miami|sunrise|dracula|mint|night|ocean|seabreeze
         %-4sPROGRESS_BAR_STYLE=1-5    Choose progress bar style (1-5)
         %-4sSTATS_PATH=/path/to/stats  Set the path for stats file
-        %-4sDEFAULT_CATEGORY=Category  Set the default category for pomodoros\n
+        %-4sDEFAULT_CATEGORY=Category  Set the default category for pomodoros
+        %-4sDEFAULT_WORK_MINUTES=Determines default work minutes timer is using. Only numbers allowed
+        %-4sDEFAULT_BREAK_MINUTES=Determines default break minutes timer is using. Only numbers allowed\n
         Schedule:
         %-4sYou can create pomodoro_schedule.csv in the folder where your .pomodoro_config file's STATS_PATH parameter is pointing.
         %-4sIn this file you can add fixed schedules for each day. Following is example of pomodoro_schedule.csv:
