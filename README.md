@@ -1,7 +1,13 @@
 #### Pomodoro timer
 ![pomodoro.png](./pomodoro.png)
 
-Pomodoro timer bash script with no library dependencies.
+Pomodoro timer bash script with few library dependecies.
+
+##### Required dependencies
+```
+grep, cut, tr
+sleep, date, clear, whoami
+```
 
 Starts a pomodoro timer in your terminal. Plays a sounds after timer is done and starts break timer. Also working in `wsl`.
 Logs completed pomodoro sessions to `home/<username>/pomodoro_stats.csv` by default
