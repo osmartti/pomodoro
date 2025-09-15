@@ -212,8 +212,9 @@ day() {
         if [[ -z "$stats" ]]; then
             echo "❌ No pomodoro stats found for today."
         else
+            minutes=$(get_combined_minutes 'day' 'work')
             echo "📊 Today's ${pomodoro_color_scheme}"$today"${reset} Pomodoro Stats ✅"
-            echo "💻 Combined working minutes are ${pomodoro_color_scheme}$(get_combined_minutes true)${reset}! $(get_working_minutes_emoji $minutes)"
+            echo "💻 Combined working minutes are ${pomodoro_color_scheme}${minutes}${reset}! $(get_working_minutes_emoji ${minutes} 'day')"
             get_table_header
             while IFS=";" read -r date category work break; do
                 printf "|✅${reset} %-19s ${pomodoro_color_scheme}|${reset} %-33s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|\n" "$date" "$category" "$work" "$break"
@@ -239,9 +240,9 @@ week() {
             stats=$(grep "$day" "$stats_file")
             if [[ -n "$stats" ]]; then
                 if ! $found; then
-                    minutes=$(get_combined_minutes false)
+                    minutes=$(get_combined_minutes 'week', 'work')
                     echo "📅 Pomodoro Stats for ${pomodoro_color_scheme}$(date -d "$today - 6 days" +'%Y-%m-%d')${reset} - ${pomodoro_color_scheme}$today${reset} ✅"
-                    echo "💻 Combined working minutes are ${pomodoro_color_scheme}${minutes}${reset}! $(get_working_minutes_emoji $minutes)"
+                    echo "💻 Combined working minutes are ${pomodoro_color_scheme}${minutes}${reset}! $(get_working_minutes_emoji $minutes 'week')"
                     get_table_header
                 fi
                 found=true
@@ -267,15 +268,13 @@ stats() {
     stats_file="$STATS_PATH/pomodoro_stats.csv"
 
     if [[ -f "$stats_file" ]]; then
+        working_minutes=$(get_combined_minutes 'all', 'work')
+        break_minutes=$(get_combined_minutes 'all', 'break')
         echo "📊 All Time Pomodoro Stats ✅"
-        get_table_header
-        while IFS=";" read -r date category work break; do
-            if [[ "$date" == "date" ]]; then
-                continue
-            fi
-            printf "|✅${reset} %-19s ${pomodoro_color_scheme}|${reset} %-33s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|\n" "$date" "$category" "$work" "$break"
-        done < "$stats_file"
-        get_table_footer
+        echo "💻 Combined working minutes are ${pomodoro_color_scheme}${working_minutes}${reset}! $(get_working_minutes_emoji ${working_minutes})"
+        echo "☕ Combined break minutes are ${pomodoro_color_scheme}${break_minutes}${reset}! $(get_working_minutes_emoji ${break_minutes})"
+        # TODO: most worked category
+        # Maybe a table of categories with combined minutes?
     else
         echo "❌ No pomodoro stats found."
     fi
@@ -358,43 +357,73 @@ get_table_footer() {
 
 get_combined_minutes() {
     local combined_minutes=0
+    time_parameter=$1
+    type=$2
     stats_file="$STATS_PATH/pomodoro_stats.csv"
     today=$(date +'%Y-%m-%d')
-    daily_stats=$1
-    if [ "$daily_stats" = true ]; then
+    if [ "$1" == "day" ]; then
         stats=$(grep "$today" "$stats_file")
         if [[ -n "$stats" ]]; then
             while IFS=";" read -r date category work break; do
                 if [[ $work -gt 0 ]]; then
-                    combined_minutes=$((combined_minutes+$work))
+                    combined_minutes=$((combined_minutes+${type}))
                 fi
             done <<< "$stats"
         fi
-    else
+    elif [ "$1" == "week" ]; then
         for i in {0..6}; do
             day=$(date -d "$today - $i days" +'%Y-%m-%d')
             stats=$(grep "$day" "$stats_file")
             if [[ -n "$stats" ]]; then
                 while IFS=";" read -r date category work break; do
                     if [[ $work -gt 0 ]]; then
-                        combined_minutes=$((combined_minutes+$work))
+                        combined_minutes=$((combined_minutes+${type}))
                     fi
                 done <<< "$stats"
             fi
         done
+    else
+        while IFS=";" read -r date category work break; do
+            if [[ $work -gt 0 ]]; then
+                combined_minutes=$((combined_minutes+${type}))
+            fi
+        done < "$stats_file"
     fi
     printf $combined_minutes
 }
 
 get_working_minutes_emoji() {
     working_minutes=$1
-    if [[ $working_minutes -gt 359 ]]; then
-        echo "🟢"  # Green circle for less than 30 minutes
-    elif [[ $working_minutes -lt 359 ]] && [[ $working_minutes -gt 240 ]]; then
-        echo "🟡"  # Yellow circle for 30-59 minutes
-    else
-        echo "🔴"  # Red circle for 60 minutes or more
-    fi
+    time_parameter=$2
+    case "$time_parameter" in
+    "day")
+        if [[ $working_minutes -gt 359 ]]; then
+            echo "🟢" 
+        elif [[ $working_minutes -lt 359 ]] && [[ $working_minutes -gt 240 ]]; then
+            echo "🟡"
+        else
+            echo "🔴"
+        fi
+    ;;
+    "week")
+        if [[ $working_minutes -gt 1795 ]]; then
+            echo "🟢"
+        elif [[ $working_minutes -lt 1795 ]] && [[ $working_minutes -gt 1200 ]]; then
+            echo "🟡"
+        else
+            echo "🔴"
+        fi
+    ;;
+    "all")
+        if [[ $working_minutes -gt 15000 ]]; then
+            echo "🟢"
+        elif [[ $working_minutes -lt 15000 ]] && [[ $working_minutes -gt 10000 ]]; then
+            echo "🟡"
+        else
+            echo "🔴"
+        fi
+    ;;
+    esac
 }
 
 get_color_scheme() {
