@@ -67,7 +67,7 @@ pomodoro --schedule
 `--version`|`-v`|Prints version information
 `--day`|`-d`|Displays daily stats
 `--week`|`-w`|Displays data from past 7 days
-`--stats`|`-s`|Displays all stats
+`--stats`|`-s`|Displays level, combined working minutes and most worked category
 `--schedule`|`-sc`|Displays fixed schedule for today
 
 **Optional:** move the `pomodoro` script to `~/.local/bin/` for easier use, run `movetobin.sh` (assuming you already have `local/bin` folder):

@@ -168,21 +168,21 @@ help() {
         Example:
         %-4spomodoro 30 10 'Reading' 2\n
         Commands:
-        %-4s--help, -h      Show help
-        %-4s--version, -v   Show version
-        %-4s--day, -d       Show today's stats
-        %-4s--week, -w      Show this week's stats
-        %-4s--stats, -s     Show all stats
+        %-4s--help, -h          Show help
+        %-4s--version, -v       Show version
+        %-4s--day, -d           Show today's stats
+        %-4s--week, -w          Show this week's stats
+        %-4s--stats, -s         Show level, combined working minutes and most worked category
         %-4s--schedule, -sc     Shows today's schedule. For more information please see the section schedule.\n
         Check the config file at ~/.local/bin/.pomodoro_config for more options.\n
         Config file options:
-        %-4sMINIMALISTIC=true/false   Enable/disable minimalistic mode
-        %-4sTHEME=default|miami|sunrise|dracula|mint|night|ocean|seabreeze
-        %-4sPROGRESS_BAR_STYLE=1-5    Choose progress bar style (1-5)
-        %-4sSTATS_PATH=/path/to/stats  Set the path for stats file
-        %-4sDEFAULT_CATEGORY=Category  Set the default category for pomodoros
-        %-4sDEFAULT_WORK_MINUTES=Determines default work minutes timer is using. Only numbers allowed
-        %-4sDEFAULT_BREAK_MINUTES=Determines default break minutes timer is using. Only numbers allowed\n
+        %-4sMINIMALISTIC=true/false       Enable/disable minimalistic mode
+        %-4sTHEME=default                 Options are default|miami|sunrise|dracula|mint|night|ocean|seabreeze
+        %-4sPROGRESS_BAR_STYLE=1-5        Choose progress bar style (1-5)
+        %-4sSTATS_PATH=/path/to/stats     Set the path for stats file
+        %-4sDEFAULT_CATEGORY=Category     Set the default category for pomodoros
+        %-4sDEFAULT_WORK_MINUTES=25       Determines default work minutes timer is using. Only numbers allowed
+        %-4sDEFAULT_BREAK_MINUTES=5       Determines default break minutes timer is using. Only numbers allowed\n
         Schedule:
         %-4sYou can create pomodoro_schedule.csv in the folder where your .pomodoro_config file's STATS_PATH parameter is pointing.
         %-4sIn this file you can add fixed schedules for each day. Following is example of pomodoro_schedule.csv:
@@ -270,15 +270,89 @@ stats() {
     if [[ -f "$stats_file" ]]; then
         working_minutes=$(get_combined_minutes 'all', 'work')
         break_minutes=$(get_combined_minutes 'all', 'break')
+        exp=$(((working_minutes+break_minutes)*2))
         echo "📊 All Time Pomodoro Stats ✅"
+        print_level_stats $exp
         echo "💻 Combined working minutes are ${pomodoro_color_scheme}${working_minutes}${reset}! $(get_working_minutes_emoji ${working_minutes})"
         echo "☕ Combined break minutes are ${pomodoro_color_scheme}${break_minutes}${reset}! $(get_working_minutes_emoji ${break_minutes})"
-        # TODO: most worked category
-        # Maybe a table of categories with combined minutes?
+        get_most_worked_category
     else
         echo "❌ No pomodoro stats found."
     fi
     exit 0
+}
+
+print_level_stats() {
+    local exp=$1
+    local -a xp_table=(0 28 58 92 129 170 216 267 323 384 452 528 611 702 803 915 1038 1174 1324 1490 1672 1874 2097 2342 2614 2914 3243 3608 4010 4454 4944 5485 6082 6741 7464 8259 9135 10068 11082 12198 13423 14765 16257 17908 19711 21683 23841 26200 28769 31566 34648 38030 41713 45720 50029 54657 59624 64945 70681 76828 83428 90496 98096 106398 115508 125530 136531 148679 162084 176935 193361 211485 231437 253481 277919 305048 335176 368520 405468 446202 491154 540855 595842 656896 724744 800152 883862 976736 1076125 1182944 1301957 1437145 1577690 1731845 1899992 2072804 2250210 2443154 2651999)
+    local level=1
+    local level_difference=0
+    for ((i = 1; i < ${#xp_table[@]}; i++)); do
+        if (( exp < xp_table[i] )); then
+            level=$i
+            level_difference=$((xp_table[i]-exp))
+            break
+        fi
+    done
+
+    if (( exp >= xp_table[98] )); then
+        level=99
+    fi
+
+    echo "$(get_level_emoji $level) Level: ${pomodoro_color_scheme}${level}${reset} Total XP: ${pomodoro_color_scheme}${exp}${reset} XP For Next Level: ${pomodoro_color_scheme}${level_difference}${reset}"
+}
+
+get_most_worked_category() {
+    stats_file="$STATS_PATH/pomodoro_stats.csv"
+    declare -A category_minutes
+    while IFS=";" read -r date category work break; do
+        if [[ -n "$category" && -n "$work" ]]; then
+            category_minutes["$category"]=$((category_minutes["$category"] + work))
+        fi
+    done < "$stats_file"
+
+    if [ ${#category_minutes[@]} -eq 0 ]; then
+        echo "❌ No categories found in stats."
+        return
+    fi
+
+    local max_category=""
+    local max_minutes=0
+    for category in "${!category_minutes[@]}"; do
+        if (( category_minutes["$category"] > max_minutes )); then
+            max_minutes=${category_minutes["$category"]}
+            max_category=$category
+        fi
+    done
+
+    echo "🏆 Most worked category is ${pomodoro_color_scheme}${max_category}${reset} with ${pomodoro_color_scheme}${max_minutes}${reset} working minutes!"
+}
+
+get_level_emoji() {
+    local level=$1
+    if (( level >= 98 )); then
+        echo "🦧"
+    elif (( level >= 90 )); then
+        echo "🌴"
+    elif (( level >= 80 )); then
+        echo "🎄"
+    elif (( level >= 70 )); then
+        echo "🌲"
+    elif (( level >= 60 )); then
+        echo "🌳"
+    elif (( level >= 50 )); then
+        echo "🎋"
+    elif (( level >= 40 )); then
+        echo "🌵"
+    elif (( level >= 30 )); then
+        echo "🪴"
+    elif (( level >= 20 )); then
+        echo "🦗"
+    elif (( level >= 10 )); then
+        echo "🌱"
+    else
+        echo "🍃"
+    fi
 }
 
 schedule() {
