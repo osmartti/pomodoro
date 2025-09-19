@@ -64,7 +64,7 @@ countdown() {
         local spinner="${spinner_chars[spinner_index]}"
         spinner_index=$(( (spinner_index + 1) % ${#spinner_chars[@]} ))
         # Print the progress bar
-        printf "\r[%s] ${pomodoro_color_scheme}%s${reset} %02d:%02d remaining" "$bar" "$spinner" "$mins" "$secs" 
+        printf "\r[%s] $(get_color_scheme)%s${reset} %02d:%02d remaining" "$bar" "$spinner" "$mins" "$secs" 
 
         sleep 1
         ((seconds--))
@@ -84,7 +84,7 @@ countdown() {
 
 # Main method
 main() {
-    local pomodoro_color_scheme=$(get_color_scheme)
+    # local pomodoro_color_scheme=$(get_color_scheme)
     local reset=$'\e[0m'
     case $1 in
 
@@ -177,7 +177,7 @@ help() {
         Check the config file at ~/.local/bin/.pomodoro_config for more options.\n
         Config file options:
         %-4sMINIMALISTIC=true/false       Enable/disable minimalistic mode
-        %-4sTHEME=default                 Options are default|miami|sunrise|dracula|mint|night|ocean|seabreeze|shiny
+        %-4sTHEME=default                 Options are default|miami|sunrise|dracula|mint|night|ocean|seabreeze|rainbow
         %-4sPROGRESS_BAR_STYLE=1-5        Choose progress bar style (1-5)
         %-4sSTATS_PATH=/path/to/stats     Set the path for stats file
         %-4sDEFAULT_CATEGORY=Category     Set the default category for pomodoros
@@ -213,11 +213,11 @@ day() {
             echo "❌ No pomodoro stats found for today."
         else
             minutes=$(get_combined_minutes 'day' 'work')
-            echo "📊 Today's ${pomodoro_color_scheme}"$today"${reset} Pomodoro Stats ✅"
-            echo "💻 Combined working minutes are ${pomodoro_color_scheme}${minutes}${reset}! $(get_working_minutes_emoji ${minutes} 'day')"
+            echo "📊 Today's $(get_color_scheme)"$today"${reset} Pomodoro Stats ✅"
+            echo "💻 Combined working minutes are $(get_color_scheme)${minutes}${reset}! $(get_working_minutes_emoji ${minutes} 'day')"
             get_table_header
             while IFS=";" read -r date category work break; do
-                printf "|✅${reset} %-19s ${pomodoro_color_scheme}|${reset} %-33s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|\n" "$date" "$category" "$work" "$break"
+                printf "|✅${reset} %-19s $(get_color_scheme)|${reset} %-33s $(get_color_scheme)|${reset} %4s $(get_color_scheme)|${reset} %4s $(get_color_scheme)|\n" "$date" "$category" "$work" "$break"
             done <<< "$stats"
             get_table_footer
         fi
@@ -241,13 +241,13 @@ week() {
             if [[ -n "$stats" ]]; then
                 if ! $found; then
                     minutes=$(get_combined_minutes 'week', 'work')
-                    echo "📅 Pomodoro Stats for ${pomodoro_color_scheme}$(date -d "$today - 6 days" +'%Y-%m-%d')${reset} - ${pomodoro_color_scheme}$today${reset} ✅"
-                    echo "💻 Combined working minutes are ${pomodoro_color_scheme}${minutes}${reset}! $(get_working_minutes_emoji $minutes 'week')"
+                    echo "📅 Pomodoro Stats for $(get_color_scheme)$(date -d "$today - 6 days" +'%Y-%m-%d')${reset} - $(get_color_scheme)$today${reset} ✅"
+                    echo "💻 Combined working minutes are $(get_color_scheme)${minutes}${reset}! $(get_working_minutes_emoji $minutes 'week')"
                     get_table_header
                 fi
                 found=true
                 while IFS=";" read -r date category work break; do
-                    printf "|✅${reset} %-19s ${pomodoro_color_scheme}|${reset} %-33s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|${reset} %4s ${pomodoro_color_scheme}|\n" "$date" "$category" "$work" "$break"
+                    printf "|✅${reset} %-19s $(get_color_scheme)|${reset} %-33s $(get_color_scheme)|${reset} %4s $(get_color_scheme)|${reset} %4s $(get_color_scheme)|\n" "$date" "$category" "$work" "$break"
                 done <<< "$stats"
             fi
         done
@@ -272,8 +272,8 @@ stats() {
         exp=$(((working_minutes+break_minutes)*2))
         echo "📊 All Time Pomodoro Stats ✅"
         print_level_stats $exp
-        echo "💻 Combined working minutes are ${pomodoro_color_scheme}${working_minutes}${reset}! $(get_working_minutes_emoji ${working_minutes})"
-        echo "☕ Combined break minutes are ${pomodoro_color_scheme}${break_minutes}${reset}! $(get_working_minutes_emoji ${break_minutes})"
+        echo "💻 Combined working minutes are $(get_color_scheme)${working_minutes}${reset}! $(get_working_minutes_emoji ${working_minutes})"
+        echo "☕ Combined break minutes are $(get_color_scheme)${break_minutes}${reset}! $(get_working_minutes_emoji ${break_minutes})"
         get_most_worked_category
     else
         echo "❌ No pomodoro stats found."
@@ -298,7 +298,7 @@ print_level_stats() {
         level=99
     fi
 
-    echo "$(get_level_emoji $level) Level: ${pomodoro_color_scheme}${level}${reset} Total XP: ${pomodoro_color_scheme}${exp}${reset} XP For Next Level: ${pomodoro_color_scheme}${level_difference}${reset}"
+    echo "$(get_level_emoji $level) Level: $(get_color_scheme)${level}${reset} Total XP: $(get_color_scheme)${exp}${reset} XP For Next Level: $(get_color_scheme)${level_difference}${reset}"
 }
 
 get_most_worked_category() {
@@ -324,7 +324,7 @@ get_most_worked_category() {
         fi
     done
 
-    echo "🏆 Most worked category is ${pomodoro_color_scheme}${max_category}${reset} with ${pomodoro_color_scheme}${max_minutes}${reset} working minutes!"
+    echo "🏆 Most worked category is $(get_color_scheme)${max_category}${reset} with $(get_color_scheme)${max_minutes}${reset} working minutes!"
 }
 
 get_level_emoji() {
@@ -383,7 +383,7 @@ schedule() {
                 else
                     description="❓ $description"
                 fi
-                printf "| ${reset}%-32s ${pomodoro_color_scheme}|${reset}%11s${pomodoro_color_scheme}|${reset}%10s${pomodoro_color_scheme}|\n" "$description" "$start_time" "$end_time"
+                printf "| ${reset}%-32s $(get_color_scheme)|${reset}%11s$(get_color_scheme)|${reset}%10s$(get_color_scheme)|\n" "$description" "$start_time" "$end_time"
             done <<< "$schedule_response"
         fi
         get_schedule_footer
@@ -396,7 +396,7 @@ ascii_pomodoro() {
     if [[ "$MINIMALISTIC" == "true" ]]; then
         return
     fi
-    echo -e "${pomodoro_color_scheme}"
+    echo -e "$(get_color_scheme)"
     cat <<'EOF'
 ██████╗  ██████╗ ███╗   ███╗ ██████╗ ██████╗  ██████╗ ██████╗  ██████╗ 
 ██╔══██╗██╔═══██╗████╗ ████║██╔═══██╗██╔══██╗██╔═══██╗██╔══██╗██╔═══██╗
@@ -409,23 +409,23 @@ EOF
 }
 
 get_table_header() {
-    echo "${pomodoro_color_scheme}|-------------------------------------------------------------------------|"
-    echo "|${reset}Date${pomodoro_color_scheme}...................|${reset}Category${pomodoro_color_scheme}...........................|${reset}W.Min${pomodoro_color_scheme}.|${reset}B.Min${pomodoro_color_scheme}.|"
+    echo "$(get_color_scheme)|-------------------------------------------------------------------------|"
+    echo "|${reset}Date$(get_color_scheme)...................|${reset}Category$(get_color_scheme)...........................|${reset}W.Min$(get_color_scheme).|${reset}B.Min$(get_color_scheme).|"
     echo "|-------------------------------------------------------------------------|"
 }
 
 get_schedule_header() {
-    echo "${pomodoro_color_scheme}|-------------------------------------------------------|"
-    echo "|${reset}Description${pomodoro_color_scheme}.....................|${reset}Start Time${pomodoro_color_scheme}.|${reset}End Time${pomodoro_color_scheme}..|"
+    echo "$(get_color_scheme)|-------------------------------------------------------|"
+    echo "|${reset}Description$(get_color_scheme).....................|${reset}Start Time$(get_color_scheme).|${reset}End Time$(get_color_scheme)..|"
     echo "|-------------------------------------------------------|"
 }
 
 get_schedule_footer() {
-    echo "${pomodoro_color_scheme}|-------------------------------------------------------|"
+    echo "$(get_color_scheme)|-------------------------------------------------------|"
 }
 
 get_table_footer() {
-    echo "${pomodoro_color_scheme}|-------------------------------------------------------------------------|"
+    echo "$(get_color_scheme)|-------------------------------------------------------------------------|"
 }
 
 get_combined_minutes() {
@@ -526,7 +526,7 @@ get_color_scheme() {
     "seabreeze")
         printf $'\e[96m'  # Cyan
         ;;
-    "shiny")
+    "rainbow")
         randi=$(( RANDOM % (theme_count - 1 + 1 ) + 1 ))
         case $randi in
         1) printf $'\e[37m' ;;
