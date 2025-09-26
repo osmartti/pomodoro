@@ -133,16 +133,16 @@ pomodoro() {
     fi
     ascii_pomodoro
     if [[ $cycles_remaining -gt 1 ]]; then
-        echo "💻 📖 👓 $WORK_MINUTES minutes of $WORK_CATEGORY for $cycles_remaining cycles..."
+        echo "💻 📖 👓 $(get_color_scheme)$WORK_MINUTES${reset} minutes of $(get_color_scheme)$WORK_CATEGORY${reset} for $(get_color_scheme)$cycles_remaining${reset} cycles..."
     else
-        echo "💻 📖 👓 $WORK_MINUTES minutes of $WORK_CATEGORY..."
+        echo "💻 📖 👓 $(get_color_scheme)$WORK_MINUTES${reset} minutes of $(get_color_scheme)$WORK_CATEGORY${reset}..."
     fi
     countdown "$WORK_SECONDS" "Work"
 
-    echo "☕ Time for a break: $BREAK_MINUTES minutes..."
+    echo "☕ Time for a break: $(get_color_scheme)$BREAK_MINUTES${reset} minutes..."
     countdown "$BREAK_SECONDS" "Break"
 
-    echo "✅ Pomodoro session complete!"
+    echo "✅ Pomodoro session complete! $(get_color_scheme)$(((WORK_MINUTES*AMOUNT_OF_CYCLES+BREAK_MINUTES*AMOUNT_OF_CYCLES)*2))${reset} XP gained! 🎉"
 
     echo "$(date +'%Y-%m-%d %H:%M');$WORK_CATEGORY;$WORK_MINUTES;$BREAK_MINUTES" >> $STATS_PATH/pomodoro_stats.csv
     cycles_remaining=$((cycles_remaining - 1))
