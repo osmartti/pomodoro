@@ -240,7 +240,7 @@ week() {
             stats=$(grep "$day" "$stats_file")
             if [[ -n "$stats" ]]; then
                 if ! $found; then
-                    minutes=$(get_combined_minutes 'week', 'work')
+                    minutes=$(get_combined_minutes 'week' 'work')
                     echo "📅 Pomodoro Stats for $(get_color_scheme)$(date -d "$today - 6 days" +'%Y-%m-%d')${reset} - $(get_color_scheme)$today${reset} ✅"
                     echo "💻 Combined working minutes are $(get_color_scheme)${minutes}${reset}! $(get_working_minutes_emoji $minutes 'week')"
                     get_table_header
@@ -267,8 +267,8 @@ stats() {
     ascii_pomodoro
     stats_file="$STATS_PATH/pomodoro_stats.csv"
     if [[ -f "$stats_file" ]]; then
-        working_minutes=$(get_combined_minutes 'all', 'work')
-        break_minutes=$(get_combined_minutes 'all', 'break')
+        working_minutes=$(get_combined_minutes 'all' 'work')
+        break_minutes=$(get_combined_minutes 'all' 'break')
         exp=$(((working_minutes+break_minutes)*2))
         echo "📊 All Time Pomodoro Stats ✅"
         print_level_stats $exp
@@ -298,7 +298,7 @@ print_level_stats() {
         level=99
     fi
 
-    echo "$(get_level_emoji $level) Level: $(get_color_scheme)${level}${reset} Total XP: $(get_color_scheme)${exp}${reset} XP For Next Level: $(get_color_scheme)${level_difference}${reset}"
+    echo "$(get_level_emoji $level)  Level: $(get_color_scheme)${level}${reset} Total XP: $(get_color_scheme)${exp}${reset} XP For Next Level: $(get_color_scheme)${level_difference}${reset}"
 }
 
 get_most_worked_category() {
@@ -438,7 +438,7 @@ get_combined_minutes() {
         stats=$(grep "$today" "$stats_file")
         if [[ -n "$stats" ]]; then
             while IFS=";" read -r date category work break; do
-                if [[ $work -gt 0 ]]; then
+                if [[ ${type} -gt 0 ]]; then
                     combined_minutes=$((combined_minutes+${type}))
                 fi
             done <<< "$stats"
@@ -449,15 +449,15 @@ get_combined_minutes() {
             stats=$(grep "$day" "$stats_file")
             if [[ -n "$stats" ]]; then
                 while IFS=";" read -r date category work break; do
-                    if [[ $work -gt 0 ]]; then
-                        combined_minutes=$((combined_minutes+${type}))
+                    if [[ ${type} -gt 0 ]]; then
+                        combined_minutes=$((combined_minutes+$work))
                     fi
                 done <<< "$stats"
             fi
         done
     else
         while IFS=";" read -r date category work break; do
-            if [[ $work -gt 0 ]]; then
+            if [[ ${type} -gt 0 ]]; then
                 combined_minutes=$((combined_minutes+${type}))
             fi
         done < "$stats_file"
